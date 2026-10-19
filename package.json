@@ -5,7 +5,8 @@
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
-    "dev": "node server.js"
+    "dev": "node server.js",
+    "build:glasses": "node build.mjs"
   },
   "engines": {
     "node": ">=18"
@@ -13,7 +14,12 @@
   "dependencies": {
     "dotenv": "^16.4.5",
     "express": "^4.21.2",
+    "pako": "^3.0.2",
     "qrcode": "^1.5.4",
     "teleproto": "^1.229.2"
+  },
+  "devDependencies": {
+    "buffer": "^6.0.3",
+    "esbuild": "^0.28.2"
   }
 }

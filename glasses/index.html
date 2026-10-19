@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no">
+  <meta name="theme-color" content="#000000">
+  <link rel="icon" href="favicon.svg" type="image/svg+xml">
+  <title>TG Viewer</title>
+  <link rel="stylesheet" href="app.css">
+</head>
+<body>
+
+  <!-- Login -->
+  <div id="login" class="screen hidden">
+    <h1>TG Viewer</h1>
+    <p id="login-hint" class="hint">Sign in with your Telegram phone number</p>
+
+    <input id="phone" type="tel" placeholder="Phone (+1 555 123 4567)" autocomplete="tel">
+    <button id="btn-code" class="btn">Send Code</button>
+
+    <input id="code" type="text" inputmode="numeric" placeholder="Login code" class="hidden">
+    <input id="password" type="password" placeholder="2FA password" class="hidden">
+    <button id="btn-confirm" class="btn hidden">Confirm</button>
+
+    <p id="login-status" class="hint"></p>
+    <p id="login-error" class="error"></p>
+  </div>
+
+  <!-- Loading -->
+  <div id="loading" class="screen">
+    <p id="loading-text">Loading Telegram engine…</p>
+  </div>
+
+  <!-- Main: contacts rail | chat | composer -->
+  <div id="app" class="hidden">
+    <aside id="contacts">
+      <div id="contacts-header">Contacts ▾</div>
+      <div id="contact-list"></div>
+    </aside>
+
+    <main>
+      <section id="chat-panel">
+        <div id="chat-title">Select a contact</div>
+        <div id="messages" tabindex="0"></div>
+      </section>
+      <form id="composer">
+        <input id="msg-input" type="text" placeholder="Type Message" autocomplete="off">
+        <button type="submit" class="btn" id="btn-send">Send</button>
+      </form>
+    </main>
+  </div>
+
+  <script src="config.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
