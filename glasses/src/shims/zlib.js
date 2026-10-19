@@ -28,8 +28,10 @@ for (let n = 0; n < 256; n++) {
 }
 
 function crc32(buf, previous = 0) {
+  // Node zlib.crc32 accepts strings (encodes UTF-8); mirror that.
+  const bytes = typeof buf === 'string' ? new TextEncoder().encode(buf) : buf;
   let c = ~previous >>> 0;
-  for (let i = 0; i < buf.length; i++) c = table[(c ^ buf[i]) & 0xff] ^ (c >>> 8);
+  for (let i = 0; i < bytes.length; i++) c = table[(c ^ bytes[i]) & 0xff] ^ (c >>> 8);
   return ~c >>> 0;
 }
 

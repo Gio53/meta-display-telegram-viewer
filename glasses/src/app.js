@@ -189,8 +189,13 @@ async function loadDialogs() {
       unread: d.unreadCount || 0,
     }));
     renderContacts();
+    el.chatTitle.textContent =
+      dialogs.length || activeChatId ? el.chatTitle.textContent : 'No chats found';
   } catch (e) {
-    // keep last known list on transient errors
+    // Surface fetch errors instead of showing an empty list forever
+    if (!dialogs.length) {
+      el.chatTitle.textContent = 'Failed to load chats: ' + (e.errorMessage || e.message);
+    }
   }
 }
 
