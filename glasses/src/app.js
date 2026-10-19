@@ -210,6 +210,51 @@ function initials(name) {
   return parts.map((p) => p[0] || '').join('').toUpperCase() || '?';
 }
 
+// Telegram's avatar palette + sender name colors
+const AVATAR_COLORS = [
+  ['#e17076', '#c94f4f'],
+  ['#7bc862', '#57a341'],
+  ['#e5ca77', '#c9a94e'],
+  ['#65aadd', '#4a8ec2'],
+  ['#a695e7', '#7f6ad1'],
+  ['#ee7aae', '#d05590'],
+  ['#faa774', '#e0854f'],
+  ['#6ec9cb', '#4aa7a9'],
+];
+
+function colorHash(name) {
+  let h = 0;
+  for (let i = 0; i < name.length; i++) h = (h * 31 + name.charCodeAt(i)) >>> 0;
+  return AVATAR_COLORS[h % AVATAR_COLORS.length];
+}
+
+function avatarHtml(name) {
+  const [light, dark] = colorHash(name);
+  return `
+    <div class="avatar" style="background:linear-gradient(150deg, ${light}, ${dark})">
+      ${initials(name)}
+    </div>`;
+}
+
+const SENDER_COLORS = ['#e17076', '#7bc862', '#e5ca77', '#65aadd', '#a695e7', '#ee7aae', '#faa774', '#6ec9cb'];
+
+function senderColor(name) {
+  let h = 0;
+  for (let i = 0; i < name.length; i++) h = (h * 31 + name.charCodeAt(i)) >>> 0;
+  return SENDER_COLORS[h % SENDER_COLORS.length];
+}
+
+function dayLabel(ts) {
+  const d = new Date(ts);
+  const today = new Date();
+  const yest = new Date();
+  yest.setDate(today.getDate() - 1);
+  const same = (a, b) => a.toDateString() === b.toDateString();
+  if (same(d, today)) return 'Today';
+  if (same(d, yest)) return 'Yesterday';
+  return d.toLocaleDateString([], { month: 'short', day: 'numeric' });
+}
+
 function renderContacts() {
   el.contactList.innerHTML = '';
   dialogs.forEach((d, i) => {
@@ -217,13 +262,16 @@ function renderContacts() {
     item.className = 'contact' + (i === activeIndex ? ' selected' : '');
     item.dataset.index = i;
     item.innerHTML = `
-      <div class="avatar">${initials(d.name)}</div>
+      ${avatarHtml(d.name)}
       <div class="name">${escapeHtml(d.name)}</div>
       ${d.unread ? `<div class="badge">${d.unread}</div>` : ''}
     `;
     item.addEventListener('click', () => openChat(i));
     el.contactList.appendChild(item);
   });
+  if (!dialogs.length) {
+    el.contactList.innerHTML = '<div class="chat-empty"><p>No chats yet</p></div>';
+  }
 }
 
 // ---------------------------------------------------------------------------
@@ -247,18 +295,44 @@ async function openChat(index) {
 }
 
 function renderMessages(list) {
-  const html = list
-    .map((m) => {
-      const sender =
-        !m.out && m.sender ? `<div class="sender">${escapeHtml(m.sender)}</div>` : '';
-      return `
-        <div class="msg ${m.out ? 'out' : 'in'}">
-          ${sender}
-          <div class="text">${escapeHtml(m.text) || '<i>[media]</i>'}</div>
-          <div class="time">${fmtTime(m.date)}</div>
-        </div>`;
-    })
-    .join('');
+  if (!list.length) {
+    el.messages.innerHTML = `
+      <div class="chat-empty">
+        <div class="ring">
+          <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M21.6 3.2 2.9 10.4c-1.1.4-1 1.9.1 2.2l4.6 1.4 1.8 5.5c.3 1 1.6 1.2 2.2.3l2.5-3.2 4.7 3.4c.8.6 2 .2 2.2-.8l3-14c.3-1.3-1.1-2.3-2.4-1.7ZM8.9 13.9l8.9-5.6c.4-.2.7.3.4.6l-7.3 6.6-.3 3-1.7-4.6Z" fill="#8774e1"/>
+          </svg>
+        </div>
+        <p>No messages here yet.<br>Send one below to start the chat.</p>
+      </div>`;
+    return;
+  }
+
+  const parts = [];
+  let lastDay = '';
+  let prevOut = null;
+  list.forEach((m) => {
+    const day = new Date(m.date).toDateString();
+    if (day !== lastDay) {
+      parts.push(`<div class="day-sep">${dayLabel(m.date)}</div>`);
+      lastDay = day;
+      prevOut = null;
+    }
+    const first = m.out !== prevOut && prevOut !== null
+      ? (m.out ? ' first-out' : ' first-in') : '';
+    const sender = !m.out && m.sender
+      ? `<div class="sender" style="color:${senderColor(m.sender)}">${escapeHtml(m.sender)}</div>`
+      : '';
+    parts.push(`
+      <div class="msg ${m.out ? 'out' : 'in'}${first}">
+        ${sender}
+        <div class="text">${escapeHtml(m.text) || '<i>[media]</i>'}</div>
+        <div class="time">${fmtTime(m.date)}</div>
+      </div>`);
+    prevOut = m.out;
+  });
+
+  const html = parts.join('');
   const nearBottom =
     el.messages.scrollHeight - el.messages.scrollTop - el.messages.clientHeight < 120;
   el.messages.innerHTML = html;
