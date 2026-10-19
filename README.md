@@ -18,7 +18,8 @@ high-contrast, and oversized so it stays readable through the glasses.
 
 ## How you connect your account from the glasses
 
-The app talks to Telegram directly via MTProto (GramJS). You link your
+The app talks to Telegram directly via MTProto (teleproto, the maintained
+GramJS fork). You link your
 account by scanning a **QR code** — no password ever passes through this
 server:
 
